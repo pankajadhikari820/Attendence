@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check-In | Smart Attendance</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="firebaseConfig.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f6f9;
+      padding: 40px 10px;
+    }
+    h2 { color: #333; }
+    #reader {
+      width: 320px;
+      margin: 20px auto;
+      border: 2px solid #007bff;
+      border-radius: 10px;
+    }
+    #feedback {
+      font-size: 16px;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input {
+      padding: 10px;
+      width: 250px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #0056b3; }
+    .section {
+      margin-top: 30px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 20px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <h2>📋 Smart Attendance Check-In</h2>
+
+  <!-- QR SCAN SECTION -->
+  <div class="section">
+    <h3>📷 Scan Your QR Code</h3>
+    <div id="reader"></div>
+    <button onclick="startScanner()">Start QR Scanner</button>
+  </div>
+
+  <!-- MANUAL ENTRY SECTION -->
+  <div class="section">
+    <h3>🧾 Or Enter Registration ID</h3>
+    <input type="text" id="regIdInput" placeholder="Enter Registration ID">
+    <button onclick="markManualAttendance()">Check-In</button>
+  </div>
+
+  <p id="feedback"></p>
+
+  <script>
+    let html5QrCode;
+
+    // ✅ Start QR Scanner
+    function startScanner() {
+      const feedback = document.getElementById("feedback");
+      feedback.textContent = "Scanner starting...";
+
+      if (html5QrCode) {
+        html5QrCode.stop().then(() => {
+          startNewScanner();
+        });
+      } else {
+        startNewScanner();
+      }
+    }
+
+    function startNewScanner() {
+      const qrRegion = document.getElementById("reader");
+      html5QrCode = new Html5Qrcode("reader");
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        qrCodeMessage => {
+          handleAttendance(qrCodeMessage); // same handler for QR & manual
+          html5QrCode.stop();
+        }
+      ).catch(err => {
+        document.getElementById("feedback").textContent = "Camera access error: " + err;
+      });
+    }
+
+    // ✅ Manual Entry Handler
+    function markManualAttendance() {
+      const regId = document.getElementById("regIdInput").value.trim();
+      if (!regId) {
+        document.getElementById("feedback").style.color = "red";
+        document.getElementById("feedback").textContent = "⚠️ Please enter your Registration ID!";
+        return;
+      }
+      handleAttendance(regId);
+    }
+
+    // ✅ Common Function (for both QR + Manual)
+    function handleAttendance(userId) {
+      const feedback = document.getElementById("feedback");
+      feedback.style.color = "black";
+      feedback.textContent = `Checking ID: ${userId}...`;
+
+      const now = new Date();
+      const dateKey = now.toLocaleDateString('en-GB').replace(/\//g, '-'); // DD-MM-YYYY
+      const timeNow = now.toLocaleTimeString('en-GB'); // HH:MM:SS AM/PM
+
+      const userRef = firebase.database().ref('users');
+      const attendanceRef = firebase.database().ref('attendance');
+
+      // Check if user exists
+      userRef.orderByChild('userId').equalTo(userId).once('value', snapshot => {
+        if (!snapshot.exists()) {
+          feedback.style.color = 'red';
+          feedback.textContent = "❌ Invalid ID (User not found)";
+          return;
+        }
+
+        const uid = Object.keys(snapshot.val())[0];
+
+        // Check if already checked in today
+        attendanceRef.child(uid).child(dateKey).once('value', daySnap => {
+          if (daySnap.exists()) {
+            const firstTime = Object.values(daySnap.val())[0].time;
+            feedback.style.color = 'blue';
+            feedback.textContent = `ℹ️ Already checked in today at ${firstTime}.`;
+            return;
+          }
+
+          // Save attendance with time
+          const newEntryRef = attendanceRef.child(uid).child(dateKey).push();
+          newEntryRef.set({
+            time: timeNow,
+            status: 'Present'
+          }, err => {
+            if (err) {
+              feedback.style.color = 'red';
+              feedback.textContent = "❗Error marking attendance. Try again.";
+            } else {
+              feedback.style.color = 'green';
+              feedback.textContent = `✅ Attendance marked successfully at ${timeNow}.`;
+              document.getElementById("regIdInput").value = "";
+            }
+          });
+        });
+      });
+    }
+  </script>
+   <footer style="text-align:center; margin-top:20px;">
+    <p>&copy;  Smart Attendance System maintained by Pankaj</p>
+</body>
+</html>

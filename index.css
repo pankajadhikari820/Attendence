@@ -1,0 +1,160 @@
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+  color: #333;
+  line-height: 1.6;
+}
+
+/* Header */
+header {
+  background: rgba(221, 242, 245, 0.6);
+  backdrop-filter: blur(12px);
+  padding: 50px 20px;
+  text-align: center;
+  border-bottom-left-radius: 25px;
+  border-bottom-right-radius: 25px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+header h1 {
+  font-size: 2.8rem;
+  margin-bottom: 10px;
+  color: #111;
+}
+
+header p {
+  font-size: 1.2rem;
+  max-width: 800px;
+  margin: auto;
+  color: #333;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Sections */
+section {
+  margin-bottom: 60px;
+}
+
+section h2 {
+  font-size: 2rem;
+  color: #2193b0; /* Theme accent */
+  margin-bottom: 20px;
+  position: relative;
+}
+
+section h2::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 3px;
+  background: #02a7f3;
+  margin-top: 5px;
+  border-radius: 3px;
+  transition: width 0.5s;
+}
+
+section h2:hover::after {
+  width: 100px;
+}
+
+/* Cards */
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.card {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(12px);
+  flex: 1 1 300px;
+  padding: 25px 20px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  transition: all 0.4s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+
+.card h3 {
+  font-size: 1.6rem;
+  margin-bottom: 15px;
+  color: #2193b0;
+}
+
+.card p {
+  flex-grow: 1;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+/* Buttons */
+.button {
+  display: inline-block;
+  padding: 12px 25px;
+  background: linear-gradient(135deg, #89d9eb, #2193b0);
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+  border-radius: 12px;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.button:hover {
+  background: linear-gradient(135deg, #2193b0, #89d9eb);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+/* How-to List */
+ol {
+  padding-left: 20px;
+}
+
+ol li {
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+/* Technology Section */
+.tech p {
+  font-size: 1.1rem;
+  color: #444;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .cards {
+    flex-direction: column;
+  }
+
+  header h1 {
+    font-size: 2rem;
+  }
+
+  header p {
+    font-size: 1rem;
+  }
+}

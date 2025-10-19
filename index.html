@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Attendance System</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<header>
+  <h1>Smart Attendance System</h1>
+  <p>Automated QR-based attendance management system with manual check-in and admin tracking.</p>
+</header>
+
+<div class="container">
+  <section class="about">
+    <h2>About Project</h2>
+    <p>
+      This is a fully automated attendance system where users can register, generate a unique QR code, and mark attendance either via QR scanning or manual ID entry. Admins can view all attendance records, track statistics through graphs, and download Excel reports.
+    </p>
+  </section>
+
+  <section class="pages">
+    <h2>Project Pages & Features</h2>
+    <div class="cards">
+      <div class="card">
+        <h3>Register Page</h3>
+        <p>
+          Users can register by entering their name and email. A unique registration ID and QR code are generated automatically. The QR code can be downloaded for future attendance marking.
+        </p>
+        <a href="register.html" class="button">Go to Register</a>
+      </div>
+
+      <div class="card">
+        <h3>Check-In Page </h3>
+        <p>
+          Users can mark attendance using their QR code or manual registration ID. Admins can access the check-in page with secure login. Multiple check-ins per day are allowed, and timestamps are recorded for accuracy.
+        </p>
+        <a href="checkin.html" class="button">Go to Check-In</a>
+      </div>
+
+      <div class="card">
+        <h3>Admin Login</h3>
+        <p>
+          Admins log in to access the dashboard. From there, they can view registered users, attendance records, daily and monthly graphs, attendance percentages, and export Excel reports for analysis.
+        </p>
+        <a href="admin-login.html" class="button">Go to Admin Login</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-to">
+    <h2>How to Use</h2>
+    <ol>
+      <li>Register using Name and Email to get your Registration ID and QR code.</li>
+      <li>Mark attendance on the Check-In page using your QR code or Registration ID.</li>
+      <li>Admins monitor attendance in real-time via Admin Login → Dashboard.</li>
+      <li>Export Excel reports for record-keeping and analysis.</li>
+    </ol>
+  </section>
+
+  <section class="tech">
+    <h2>Technologies Used</h2>
+    <p>
+      HTML, CSS, JavaScript, Firebase Realtime Database, QRious, HTML5 QR code scanner, Chart.js, XLSX.js.
+    </p>
+  </section>
+</div>
+ <footer style="text-align:center; margin-top:20px;">
+    <p>&copy;  Smart Attendance System maintained by Pankaj</p>
+
+</body>
+</html>
