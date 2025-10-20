@@ -1,108 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Dashboard | Smart Attendance</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script src="firebaseConfig.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | Smart Attendance</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="firebaseConfig.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+body{font-family:Arial,sans-serif; padding:20px;}
+.container{max-width:1200px;margin:auto;}
+h2,h3{color:#333;}
+table{border-collapse:collapse;width:100%;margin-bottom:20px;}
+th,td{border:1px solid #ccc;padding:8px;text-align:center;}
+th{background:#007bff;color:white;}
+button{background:#007bff;color:white;padding:5px 12px;border:none;border-radius:5px;cursor:pointer;}
+button:hover{background:#0056b3;}
+</style>
 </head>
 <body>
 <div class="container">
-  <h2>Admin Dashboard</h2>
-  <button onclick="logout()">Logout</button>
+<h2>Admin Dashboard</h2>
+<button onclick="logout()">Logout</button>
 
-  <h3>🔍 Search User</h3>
-  <input type="text" id="searchInput" placeholder="Search by User ID or Name">
-  <button onclick="applySearch()">Search</button>
-  <button onclick="resetSearch()">Reset</button>
+<h3>🔍 Search User</h3>
+<input type="text" id="searchInput" placeholder="Search by User ID or Name">
+<button onclick="applySearch()">Search</button>
+<button onclick="resetSearch()">Reset</button>
 
-  <h3>📅 Month Filter</h3>
-  Month:
-  <select id="monthSelect">
-    <option value="">--Select Month--</option>
-    <option value="0">January</option>
-    <option value="1">February</option>
-    <option value="2">March</option>
-    <option value="3">April</option>
-    <option value="4">May</option>
-    <option value="5">June</option>
-    <option value="6">July</option>
-    <option value="7">August</option>
-    <option value="8">September</option>
-    <option value="9">October</option>
-    <option value="10">November</option>
-    <option value="11">December</option>
-  </select>
-  Year:
-  <input type="number" id="yearInput" min="2000" max="2100" placeholder="YYYY">
-  <button onclick="applyMonthFilter()">Apply Month Filter</button>
+<h3>📅 Month Filter</h3>
+Month:
+<select id="monthSelect">
+<option value="">--Select Month--</option>
+<option value="0">January</option><option value="1">February</option><option value="2">March</option>
+<option value="3">April</option><option value="4">May</option><option value="5">June</option>
+<option value="6">July</option><option value="7">August</option><option value="8">September</option>
+<option value="9">October</option><option value="10">November</option><option value="11">December</option>
+</select>
+Year: <input type="number" id="yearInput" min="2000" max="2100" placeholder="YYYY">
+<button onclick="applyMonthFilter()">Apply</button>
 
-  <div class="box-section">
-    <div class="box" onclick="window.location.href='index.html'">
-      <h4>🏠 Home</h4>
-    </div>
-    <div class="box" onclick="window.location.href='checkin.html'">
-      <h4>✅ Mark Attendance</h4>
-    </div>
-  </div>
+<h3>📋 Registered Users</h3>
+<table id="usersTable"></table>
+<button onclick="downloadUsers()">⬇️ Download Users Excel</button>
 
-  <h3>📋 Registered Users</h3>
-  <table border="1" id="usersTable">
-    <tr><th>User ID</th><th>Name</th><th>Mobile</th><th>Registered At</th><th>Action</th></tr>
-  </table>
-  <button onclick="downloadUsers()">⬇️ Download Users Excel</button>
+<h3>🕒 Attendance Records (Time + Location)</h3>
+<table id="attendanceTable"></table>
+<button onclick="downloadAttendance()">⬇️ Download Attendance Excel</button>
 
-  <h3>🕒 Attendance Records</h3>
-  <table border="1" id="attendanceTable"></table>
-  <button onclick="downloadAttendance()">⬇️ Download Attendance Excel</button>
+<h3>📊 Daily Attendance Graph</h3>
+<canvas id="attendanceChart" width="400" height="200"></canvas>
 
-  <h3>📊 Daily Attendance Graph</h3>
-  <canvas id="attendanceChart" width="400" height="200"></canvas>
-
-  <h3>⚡ Attendance Percentage</h3>
-  <table border="1" id="percentageTable">
-    <tr><th>User ID</th><th>Name</th><th>Total Days Attended</th><th>Attendance %</th></tr>
-  </table>
+<h3>⚡ Attendance Percentage</h3>
+<table id="percentageTable"></table>
 </div>
 
 <script>
-if(localStorage.getItem('isAdmin') !== 'true') window.location.href = 'admin-login.html';
+if(localStorage.getItem('isAdmin')!=='true') window.location.href='admin-login.html';
 
-const usersTable = document.getElementById('usersTable');
-const attendanceTable = document.getElementById('attendanceTable');
-const searchInput = document.getElementById('searchInput');
-const monthSelect = document.getElementById('monthSelect');
-const yearInput = document.getElementById('yearInput');
+const usersTable=document.getElementById('usersTable');
+const attendanceTable=document.getElementById('attendanceTable');
+const percentageTable=document.getElementById('percentageTable');
+const searchInput=document.getElementById('searchInput');
+const monthSelect=document.getElementById('monthSelect');
+const yearInput=document.getElementById('yearInput');
 
-let allUsers = {};
-let allAttendance = {};
-let totalUsers = 0;
+let allUsers={}, allAttendance={}, totalUsers=0;
 
 // --- Load Users ---
-firebase.database().ref('users').on('value', snapshot => {
-  allUsers = snapshot.val() || {};
+firebase.database().ref('users').on('value', snapshot=>{
+  allUsers = snapshot.val()||{};
   totalUsers = Object.keys(allUsers).length;
   renderUsersTable();
   renderMonthAttendance();
 });
 
 // --- Load Attendance ---
-firebase.database().ref('attendance').on('value', snapshot => {
-  allAttendance = snapshot.val() || {};
+firebase.database().ref('attendance').on('value', snapshot=>{
+  allAttendance = snapshot.val()||{};
   renderMonthAttendance();
 });
 
-// --- Render Users Table ---
+// --- Users Table ---
 function renderUsersTable(filter=''){
-  usersTable.innerHTML = "<tr><th>User ID</th><th>Name</th><th>Mobile</th><th>Registered At</th><th>Action</th></tr>";
+  usersTable.innerHTML="<tr><th>User ID</th><th>Name</th><th>Mobile</th><th>Registered At</th><th>Action</th></tr>";
   Object.keys(allUsers).forEach(uid=>{
-    const u = allUsers[uid];
+    const u=allUsers[uid];
     if(filter && !(uid.includes(filter) || (u.name && u.name.toLowerCase().includes(filter.toLowerCase())))) return;
-    usersTable.innerHTML += `<tr>
+    usersTable.innerHTML+=`<tr>
       <td>${u.userId||uid}</td>
       <td>${u.name||""}</td>
       <td>${u.mobile||""}</td>
@@ -112,164 +100,125 @@ function renderUsersTable(filter=''){
   });
 }
 
-// --- Delete User ---
 function deleteUser(uid){
-  if(!confirm("Are you sure you want to delete this user and all attendance records?")) return;
+  if(!confirm("Are you sure to delete this user & attendance?")) return;
   firebase.database().ref('users/'+uid).remove();
   firebase.database().ref('attendance/'+uid).remove();
   alert("User deleted successfully!");
 }
 
-// --- Render Attendance by Month ---
+// --- Attendance Table ---
 function renderMonthAttendance(filter=''){
-  const selectedMonth = monthSelect.value;
-  const selectedYear = yearInput.value;
-
+  const selectedMonth=monthSelect.value;
+  const selectedYear=yearInput.value;
   const attendanceDates = new Set();
+
   Object.keys(allAttendance).forEach(uid=>{
     Object.keys(allAttendance[uid]||{}).forEach(dateStr=>{
-      const parts = dateStr.split('-'); // "dd-mm-yyyy"
-      const dMonth = parseInt(parts[1],10)-1;
-      const dYear = parseInt(parts[2],10);
-      if((selectedMonth === '' || dMonth == selectedMonth) &&
-         (selectedYear === '' || dYear == selectedYear)){
+      const parts=dateStr.split('-'); const dMonth=parseInt(parts[1],10)-1; const dYear=parseInt(parts[2],10);
+      if((selectedMonth==='' || dMonth==selectedMonth) && (selectedYear==='' || dYear==selectedYear))
         attendanceDates.add(dateStr);
-      }
     });
   });
 
-  const allDates = Array.from(attendanceDates).sort();
+  const allDates=Array.from(attendanceDates).sort();
 
-  // --- Attendance Table ---
-  let header = "<tr><th>User ID</th><th>Name</th>";
-  allDates.forEach(date=>header += `<th>${date}</th>`);
-  header += "</tr>";
-  attendanceTable.innerHTML = header;
+  // Attendance Table
+  let header="<tr><th>User ID</th><th>Name</th>";
+  allDates.forEach(date=>header+=`<th>${date}</th>`);
+  header+="</tr>"; attendanceTable.innerHTML=header;
 
   Object.keys(allUsers).forEach(uid=>{
-    const u = allUsers[uid];
+    const u=allUsers[uid];
     if(filter && !(uid.includes(filter) || (u.name && u.name.toLowerCase().includes(filter.toLowerCase())))) return;
-    let row = `<tr><td>${uid}</td><td>${u.name||""}</td>`;
+    let row=`<tr><td>${uid}</td><td>${u.name||""}</td>`;
     allDates.forEach(date=>{
-      const entry = allAttendance[uid]?.[date];
-      row += `<td>${entry ? Object.keys(entry).map(k=>entry[k].time).join(", ") : "-"}</td>`;
+      const entry=allAttendance[uid]?.[date];
+      row+=`<td>${entry ? Object.keys(entry).map(k=>{
+        const loc=entry[k].location ? `(${entry[k].location.lat.toFixed(4)},${entry[k].location.lng.toFixed(4)})` : '';
+        return `${entry[k].time} ${loc}`;
+      }).join("<br>") : "-"}</td>`;
     });
-    row += "</tr>";
-    attendanceTable.innerHTML += row;
+    row+="</tr>"; attendanceTable.innerHTML+=row;
   });
 
-  // --- Attendance Percentage ---
-  const table = document.getElementById('percentageTable');
-  table.innerHTML = "<tr><th>User ID</th><th>Name</th><th>Total Days Attended</th><th>Attendance %</th></tr>";
+  // Percentage Table
+  percentageTable.innerHTML="<tr><th>User ID</th><th>Name</th><th>Total Days Attended</th><th>Attendance %</th></tr>";
   Object.keys(allUsers).forEach(uid=>{
     const attendedDays = Object.keys(allAttendance[uid]||{}).filter(dateStr=>{
-      const parts = dateStr.split('-');
-      const dMonth = parseInt(parts[1],10)-1;
-      const dYear = parseInt(parts[2],10);
-      return (selectedMonth === '' || dMonth == selectedMonth) &&
-             (selectedYear === '' || dYear == selectedYear);
+      const parts=dateStr.split('-'); const dMonth=parseInt(parts[1],10)-1; const dYear=parseInt(parts[2],10);
+      return (selectedMonth===''||dMonth==selectedMonth)&&(selectedYear===''||dYear==selectedYear);
     }).length;
-    const percent = allDates.length ? ((attendedDays/allDates.length)*100).toFixed(2) : 0;
-    table.innerHTML += `<tr>
-      <td>${uid}</td>
-      <td>${allUsers[uid]?.name||""}</td>
-      <td>${attendedDays}</td>
-      <td>${percent}%</td>
-    </tr>`;
+    const percent = allDates.length?((attendedDays/allDates.length)*100).toFixed(2):0;
+    percentageTable.innerHTML+=`<tr><td>${uid}</td><td>${allUsers[uid]?.name||""}</td><td>${attendedDays}</td><td>${percent}%</td></tr>`;
   });
 
-  // --- Graph ---
-  const datasets = [];
-  const colors = ['rgba(54,162,235,0.6)','rgba(255,99,132,0.6)','rgba(255,206,86,0.6)',
-                  'rgba(75,192,192,0.6)','rgba(153,102,255,0.6)','rgba(255,159,64,0.6)'];
-  let colorIndex = 0;
+  // Graph
+  const datasets=[]; const colors=['rgba(54,162,235,0.6)','rgba(255,99,132,0.6)','rgba(255,206,86,0.6)','rgba(75,192,192,0.6)'];
+  let colorIndex=0;
   Object.keys(allAttendance).forEach(uid=>{
-    const data = allDates.map(date=>allAttendance[uid]?.[date] ? 1 : 0);
-    datasets.push({label: allUsers[uid]?.name||uid, data, backgroundColor: colors[colorIndex%colors.length]});
-    colorIndex++;
+    const data=allDates.map(date=>allAttendance[uid]?.[date]?1:0);
+    datasets.push({label:allUsers[uid]?.name||uid,data,backgroundColor:colors[colorIndex%colors.length]}); colorIndex++;
   });
-  const ctx = document.getElementById('attendanceChart').getContext('2d');
+  const ctx=document.getElementById('attendanceChart').getContext('2d');
   if(window.myChart) window.myChart.destroy();
-  window.myChart = new Chart(ctx,{
-    type:'bar',
-    data:{labels: allDates, datasets},
-    options:{responsive:true, plugins:{legend:{display:true}}, scales:{y:{beginAtZero:true}}}
-  });
+  window.myChart=new Chart(ctx,{type:'bar',data:{labels:allDates,datasets},options:{responsive:true,plugins:{legend:{display:true}},scales:{y:{beginAtZero:true}}}});
 }
 
-// --- Apply Month Filter ---
-function applyMonthFilter(){
-  renderMonthAttendance(searchInput.value.trim());
-}
-
-// --- Search / Reset ---
-function applySearch(){
-  const val = searchInput.value.trim();
-  renderUsersTable(val);
-  renderMonthAttendance(val);
-}
-function resetSearch(){
-  searchInput.value = '';
-  renderUsersTable();
-  renderMonthAttendance();
-}
+// --- Search & Filter ---
+function applyMonthFilter(){ renderMonthAttendance(searchInput.value.trim()); }
+function applySearch(){ const val=searchInput.value.trim(); renderUsersTable(val); renderMonthAttendance(val); }
+function resetSearch(){ searchInput.value=''; renderUsersTable(); renderMonthAttendance(); }
 
 // --- Excel Downloads ---
 function downloadUsers(){
-  const ws_data = [["User ID","Name","Mobile","Registered At"]];
+  const ws_data=[["User ID","Name","Mobile","Registered At"]];
   Object.keys(allUsers).forEach(uid=>{
-    const u = allUsers[uid];
-    ws_data.push([u.userId||uid, u.name||"", u.mobile||"", u.registeredAt||""]);
+    const u=allUsers[uid]; ws_data.push([u.userId||uid,u.name||"",u.mobile||"",u.registeredAt||""]);
   });
-  const wb = XLSX.utils.book_new();
+  const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ws_data),"Users");
   XLSX.writeFile(wb,"UsersData.xlsx");
 }
 
 function downloadAttendance(){
-  const selectedMonth = monthSelect.value;
-  const selectedYear = yearInput.value;
+  const selectedMonth=monthSelect.value;
+  const selectedYear=yearInput.value;
+  const attendanceDates=new Set();
 
-  const attendanceDates = new Set();
   Object.keys(allAttendance).forEach(uid=>{
     Object.keys(allAttendance[uid]||{}).forEach(dateStr=>{
-      const parts = dateStr.split('-');
-      const dMonth = parseInt(parts[1],10)-1;
-      const dYear = parseInt(parts[2],10);
-      if((selectedMonth === '' || dMonth == selectedMonth) &&
-         (selectedYear === '' || dYear == selectedYear)){
-        attendanceDates.add(dateStr);
-      }
+      const parts=dateStr.split('-'); const dMonth=parseInt(parts[1],10)-1; const dYear=parseInt(parts[2],10);
+      if((selectedMonth===''||dMonth==selectedMonth)&&(selectedYear===''||dYear==selectedYear)) attendanceDates.add(dateStr);
     });
   });
 
-  const allDates = Array.from(attendanceDates).sort();
-  const ws_data = [["User ID","Name",...allDates]];
+  const allDates=Array.from(attendanceDates).sort();
+  const ws_data=[["User ID","Name",...allDates]];
 
   Object.keys(allUsers).forEach(uid=>{
-    const u = allUsers[uid];
-    const row = [uid, u.name||""];
+    const u=allUsers[uid]; const row=[uid,u.name||""];
     allDates.forEach(date=>{
-      const entry = allAttendance[uid]?.[date];
-      row.push(entry ? Object.keys(entry).map(k=>entry[k].time).join(", ") : "-");
+      const entry=allAttendance[uid]?.[date];
+      row.push(entry?Object.keys(entry).map(k=>{
+        const loc=entry[k].location?`(${entry[k].location.lat.toFixed(4)},${entry[k].location.lng.toFixed(4)})`:'';
+        return `${entry[k].time} ${loc}`;
+      }).join(", "):"-");
     });
     ws_data.push(row);
   });
 
-  const wb = XLSX.utils.book_new();
+  const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ws_data),"Attendance");
   XLSX.writeFile(wb,"AttendanceData.xlsx");
 }
 
 // --- Logout ---
-function logout(){
-  localStorage.removeItem('isAdmin');
-  window.location.href='admin-login.html';
-}
+function logout(){ localStorage.removeItem('isAdmin'); window.location.href='admin-login.html'; }
 </script>
 
 <footer style="text-align:center; margin-top:20px;">
-  <p>&copy; Smart Attendance System maintained by <b>Pankaj</b></p>
+<p>&copy; Smart Attendance System maintained by Pankaj</p>
 </footer>
 </body>
 </html>
